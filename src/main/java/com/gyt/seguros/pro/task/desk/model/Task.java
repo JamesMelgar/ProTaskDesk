@@ -1,5 +1,6 @@
 package com.gyt.seguros.pro.task.desk.model;
 
+import com.gyt.seguros.pro.task.desk.model.enums.TaskPriority;
 import com.gyt.seguros.pro.task.desk.model.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -38,17 +39,14 @@ public class Task {
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
 
-    // Relación ManyToOne con Project
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
-    // Relación ManyToOne con User para assigned_to_user_id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_user_id", nullable = false)
     private User assignedTo;
 
-    // Relación ManyToOne con User para created_by_user_id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", nullable = false)
     private User createdBy;
@@ -59,16 +57,15 @@ public class Task {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Manejo automático de timestamps
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) {
-            status = TaskStatus.PENDING; // Establecer el valor por defecto
+            status = TaskStatus.PENDING;
         }
         if (priority == null) {
-            priority = TaskPriority.MEDIUM; // Establecer el valor por defecto
+            priority = TaskPriority.MEDIUM;
         }
     }
 

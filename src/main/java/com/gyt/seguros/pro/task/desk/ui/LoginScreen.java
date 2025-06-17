@@ -34,7 +34,7 @@ public class LoginScreen extends JFrame {
     private void initComponents() {
         LoginPanel = new JPanel();
         LoginPanel.setLayout(new GridBagLayout());
-        LoginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Añade un margen interno
+        LoginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -136,38 +136,30 @@ public class LoginScreen extends JFrame {
 
                 if ("admin".equals(usuario) && "123456".equals(password)) {
                     messageLabel.setText("¡Bienvenido, " + usuario + "!");
-                    messageLabel.setForeground(new Color(0, 150, 0)); // Verde para éxito
+                    messageLabel.setForeground(new Color(0, 150, 0));
                     JOptionPane.showMessageDialog(LoginScreen.this,
                             "¡Bienvenido, " + usuario + "!",
                             "Login Exitoso", JOptionPane.INFORMATION_MESSAGE);
-                    // Aquí puedes abrir tu ventana principal y cerrar el login
-                    // dispose(); // Cerrar login
-                    // new MainApplicationScreen().setVisible(true);
                 } else {
                     messageLabel.setText("Usuario o contraseña incorrectos.");
                     messageLabel.setForeground(Color.RED);
-                    passwordField.setText(""); 
+                    passwordField.setText("");
                 }
             }
         });
 
-        buttonRegister.addActionListener(e -> { // Listener para el botón de registro
-            String usuario = textFieldUser.getText().trim();
-            String password = new String(passwordField.getPassword());
-
-            if (usuario.isEmpty() || password.isEmpty()) {
-                messageLabel.setText("Ingrese un usuario y contraseña para registrarse.");
-                messageLabel.setForeground(Color.RED);
-                return;
-            }
-
-            messageLabel.setText("Usuario '" + usuario + "' registrado con éxito. ¡Ya puedes iniciar sesión!");
-            messageLabel.setForeground(new Color(0, 150, 0)); // Verde para éxito
-            JOptionPane.showMessageDialog(LoginScreen.this,
-                    "Usuario '" + usuario + "' registrado con éxito.",
-                    "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
-            textFieldUser.setText("");
-            passwordField.setText("");
+        buttonRegister.addActionListener(e -> {
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    RegisterScreen registerScreen = new RegisterScreen();
+                    registerScreen.setVisible(true);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(LoginScreen.this,
+                            "Error al abrir pantalla de registro: " + ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            });
         });
 
         getRootPane().setDefaultButton(buttonLogin);
