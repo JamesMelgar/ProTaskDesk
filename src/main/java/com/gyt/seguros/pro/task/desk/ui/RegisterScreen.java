@@ -2,11 +2,13 @@ package com.gyt.seguros.pro.task.desk.ui;
 
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
 import com.gyt.seguros.pro.task.desk.service.RegisterSvc;
+import com.gyt.seguros.pro.task.desk.dto.UserRegistrationRequest;
+import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+
+import javax.swing.WindowConstants;
 
 public class RegisterScreen extends JFrame {
 
@@ -19,16 +21,35 @@ public class RegisterScreen extends JFrame {
     private JButton cancelButton;
     private JLabel messageLabel;
 
+    private final transient RegisterSvc registerService;
+
     private static final String TITLE_PANEL = "Sistema de Tareas - Registro de Usuario";
     private static final String TITLE_BUTTON_REGISTER = "Registrar";
     private static final String TITLE_BUTTON_CANCEL = "Cancelar";
+    private static final String HEADER_LABEL_TEXT = "Crear Nueva Cuenta";
+    private static final String LABEL_FULL_NAME = "Nombre Completo:";
+    private static final String LABEL_USERNAME = "Usuario:";
+    private static final String LABEL_PASSWORD = "Contraseña:";
+    private static final String LABEL_CONFIRM_PASSWORD = "Confirmar Contraseña:";
+    private static final String LABEL_EMAIL = "Email:";
+
+    private static final String MESSAGE_REGISTRATION_SUCCESS = "¡Registro exitoso! Ya puedes iniciar sesión.";
+    private static final String MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE = "Registro Exitoso";
+    private static final String MESSAGE_REGISTRATION_GENERIC_ERROR = "Error al registrar. Inténtelo de nuevo o el usuario ya existe.";
+    private static final String MESSAGE_PASSWORDS_MISMATCH = "Las contraseñas no coinciden.";
+    private static final String MESSAGE_REGISTRATION_RUNTIME_ERROR = "Ocurrió un error inesperado durante el registro: ";
+    private static final String MESSAGE_REGISTRATION_GENERAL_ERROR = "Ocurrió un error general. Contacte a soporte.";
+
 
     public RegisterScreen() {
+        this.registerService = ProTaskDesk.getBean(RegisterSvc.class);
+
         initComponents();
+
         setTitle(TITLE_PANEL);
         setContentPane(createMainPanel());
         setSize(450, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
         setupEventHandlers();
@@ -41,24 +62,30 @@ public class RegisterScreen extends JFrame {
         fullNameField = new JTextField(20);
         emailField = new JTextField(20);
 
-        registerButton = new JButton(TITLE_BUTTON_REGISTER );
-        cancelButton = new JButton(TITLE_BUTTON_CANCEL );
+        registerButton = new JButton(TITLE_BUTTON_REGISTER);
+        cancelButton = new JButton(TITLE_BUTTON_CANCEL);
 
         messageLabel = new JLabel("", SwingConstants.CENTER);
-        messageLabel.setForeground(Color.RED);
+        messageLabel.setForeground(AppConstants.ERROR_COLOR);
     }
 
     private JPanel createMainPanel() {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(
+                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING,
+                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(
+                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING,
+                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING
+        );
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel titleLabel = new JLabel("Crear Nueva Cuenta");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 22));
+        JLabel titleLabel = new JLabel(HEADER_LABEL_TEXT);
+        titleLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 22));
         titleLabel.setForeground(Color.DARK_GRAY);
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -69,39 +96,39 @@ public class RegisterScreen extends JFrame {
         gbc.insets = new Insets(15, 10, 10, 10);
         mainPanel.add(new JLabel(""), gbc);
 
-        // Nombre Completo
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Nombre Completo:"), gbc);
+        mainPanel.add(new JLabel(LABEL_FULL_NAME), gbc);
         gbc.gridy++;
         mainPanel.add(fullNameField, gbc);
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Usuario:"), gbc);
+        mainPanel.add(new JLabel(LABEL_USERNAME), gbc);
         gbc.gridy++;
         mainPanel.add(usernameField, gbc);
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Contraseña:"), gbc);
+        mainPanel.add(new JLabel(LABEL_PASSWORD), gbc);
         gbc.gridy++;
         mainPanel.add(passwordField, gbc);
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Confirmar Contraseña:"), gbc);
+        mainPanel.add(new JLabel(LABEL_CONFIRM_PASSWORD), gbc);
         gbc.gridy++;
         mainPanel.add(confirmPasswordField, gbc);
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel("Email:"), gbc);
+        mainPanel.add(new JLabel(LABEL_EMAIL), gbc);
         gbc.gridy++;
         mainPanel.add(emailField, gbc);
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+        messageLabel.setForeground(AppConstants.ERROR_COLOR); // Asegurarse que el color inicial es el de error.
         mainPanel.add(messageLabel, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
@@ -132,77 +159,60 @@ public class RegisterScreen extends JFrame {
     }
 
     private void setupEventHandlers() {
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleRegistration();
-            }
-        });
+        registerButton.addActionListener(e -> handleRegistration());
 
-        cancelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        cancelButton.addActionListener(e -> dispose());
     }
 
     private void handleRegistration() {
-        String username = usernameField.getText().trim();
-        String password = new String(passwordField.getPassword());
-        String confirmPassword = new String(confirmPasswordField.getPassword());
-        String fullName = fullNameField.getText().trim();
-        String email = emailField.getText().trim();
+        UserRegistrationRequest request = new UserRegistrationRequest(
+                usernameField.getText().trim(),
+                new String(passwordField.getPassword()),
+                new String(confirmPasswordField.getPassword()),
+                fullNameField.getText().trim(),
+                emailField.getText().trim()
+        );
 
-        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
-            messageLabel.setText("Todos los campos son obligatorios.");
-            messageLabel.setForeground(Color.RED);
+        if (request.getUsername().isEmpty() || request.getPassword().isEmpty() ||
+                request.getConfirmPassword().isEmpty() || request.getFullName().isEmpty() ||
+                request.getEmail().isEmpty()) {
+            messageLabel.setText(AppConstants.MESSAGE_ERROR_FIELDS_REQUIRED);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
-            messageLabel.setText("Las contraseñas no coinciden.");
-            messageLabel.setForeground(Color.RED);
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            messageLabel.setText(MESSAGE_PASSWORDS_MISMATCH);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
             passwordField.setText("");
             confirmPasswordField.setText("");
             return;
         }
 
         try {
-            RegisterSvc registerService = ProTaskDesk.getBean(RegisterSvc.class);
+            boolean registrationSuccess = registerService.registerUser(request);
 
-            if (registerService != null) {
-                boolean registrationSuccess = registerService.registerUser(username, password, fullName, email);
-
-                if (registrationSuccess) {
-                    messageLabel.setText("¡Registro exitoso! Ya puedes iniciar sesión.");
-                    messageLabel.setForeground(new Color(0, 150, 0));
-                    JOptionPane.showMessageDialog(this, "Usuario '" + username + "' registrado con éxito.",
-                            "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                } else {
-                    messageLabel.setText("Error al registrar. Inténtelo de nuevo.");
-                    messageLabel.setForeground(Color.RED);
-                }
-            } else {
-                messageLabel.setText("¡Registro exitoso! (Modo demo)");
-                messageLabel.setForeground(new Color(0, 150, 0));
-                JOptionPane.showMessageDialog(this, "Usuario '" + username + "' registrado con éxito (Modo demo).",
-                        "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
+            if (registrationSuccess) {
+                messageLabel.setText(MESSAGE_REGISTRATION_SUCCESS);
+                messageLabel.setForeground(AppConstants.SUCCESS_COLOR);
+                JOptionPane.showMessageDialog(this, "Usuario '" + request.getUsername() + "' registrado con éxito.",
+                        MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE, JOptionPane.INFORMATION_MESSAGE);
                 dispose();
+            } else {
+                messageLabel.setText(MESSAGE_REGISTRATION_GENERIC_ERROR);
+                messageLabel.setForeground(AppConstants.ERROR_COLOR);
             }
-
         } catch (IllegalArgumentException ex) {
             messageLabel.setText(ex.getMessage());
-            messageLabel.setForeground(Color.RED);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
             passwordField.setText("");
             confirmPasswordField.setText("");
+        } catch (RuntimeException ex) {
+            messageLabel.setText(MESSAGE_REGISTRATION_RUNTIME_ERROR + ex.getMessage());
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
         } catch (Exception ex) {
-            messageLabel.setText("¡Registro exitoso! (Modo básico)");
-            messageLabel.setForeground(new Color(0, 150, 0));
-            JOptionPane.showMessageDialog(this, "Usuario '" + username + "' registrado con éxito (Modo básico).",
-                    "Registro Exitoso", JOptionPane.INFORMATION_MESSAGE);
-            dispose();
+            messageLabel.setText(MESSAGE_REGISTRATION_GENERAL_ERROR);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
         }
     }
 }

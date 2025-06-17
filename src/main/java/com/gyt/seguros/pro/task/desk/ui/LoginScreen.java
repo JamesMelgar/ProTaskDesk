@@ -1,9 +1,18 @@
 package com.gyt.seguros.pro.task.desk.ui;
 
+import com.gyt.seguros.pro.task.desk.ProTaskDesk;
+import com.gyt.seguros.pro.task.desk.dto.UserLoginRequest;
+import com.gyt.seguros.pro.task.desk.model.User;
+import com.gyt.seguros.pro.task.desk.service.LoginSvc;
+import com.gyt.seguros.pro.task.desk.util.AppConstants;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Optional;
+
+import javax.swing.WindowConstants;
 
 public class LoginScreen extends JFrame {
     private JPanel LoginPanel;
@@ -15,17 +24,25 @@ public class LoginScreen extends JFrame {
     private JButton buttonRegister;
     private JLabel messageLabel;
 
+    private LoginSvc loginService;
+
     private static final String TITLE_PANEL = "Sistema Gestion de Tareas";
     private static final String HEADER = "Login Swing";
-    private static final String FONT_TITLE = "Arial";
+
+    private static final String MESSAGE_LOGIN_SUCCESS_TITLE = "Login Exitoso";
+    private static final String MESSAGE_LOGIN_INVALID_CREDENTIALS = "Usuario o contraseña incorrectos.";
+    private static final String MESSAGE_ERROR_REGISTER_SCREEN = "Error al abrir pantalla de registro: ";
+
 
     public LoginScreen() {
+        this.loginService = ProTaskDesk.getBean(LoginSvc.class);
+
         initComponents();
 
         setContentPane(LoginPanel);
         setTitle(TITLE_PANEL);
         setSize(500, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setupEventHandlers();
         setVisible(true);
@@ -34,13 +51,19 @@ public class LoginScreen extends JFrame {
     private void initComponents() {
         LoginPanel = new JPanel();
         LoginPanel.setLayout(new GridBagLayout());
-        LoginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        LoginPanel.setBorder(BorderFactory.createEmptyBorder(
+                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING,
+                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(
+                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING,
+                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING
+        );
 
         JLabel titleLabel = new JLabel(HEADER);
-        titleLabel.setFont(new Font(FONT_TITLE, Font.BOLD, 24));
+        titleLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 24));
         titleLabel.setForeground(Color.DARK_GRAY);
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -113,7 +136,7 @@ public class LoginScreen extends JFrame {
         LoginPanel.add(buttonPanel, gbc);
 
         messageLabel = new JLabel("", SwingConstants.CENTER);
-        messageLabel.setForeground(Color.RED);
+        messageLabel.setForeground(AppConstants.ERROR_COLOR);
         gbc.gridx = 0;
         gbc.gridy = 7;
         gbc.gridwidth = 2;
@@ -125,26 +148,7 @@ public class LoginScreen extends JFrame {
         buttonLogin.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String usuario = textFieldUser.getText().trim();
-                String password = new String(passwordField.getPassword());
-
-                if (usuario.isEmpty() || password.isEmpty()) {
-                    messageLabel.setText("Por favor, complete todos los campos.");
-                    messageLabel.setForeground(Color.RED);
-                    return;
-                }
-
-                if ("admin".equals(usuario) && "123456".equals(password)) {
-                    messageLabel.setText("¡Bienvenido, " + usuario + "!");
-                    messageLabel.setForeground(new Color(0, 150, 0));
-                    JOptionPane.showMessageDialog(LoginScreen.this,
-                            "¡Bienvenido, " + usuario + "!",
-                            "Login Exitoso", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    messageLabel.setText("Usuario o contraseña incorrectos.");
-                    messageLabel.setForeground(Color.RED);
-                    passwordField.setText("");
-                }
+                handleLogin();
             }
         });
 
@@ -155,13 +159,46 @@ public class LoginScreen extends JFrame {
                     registerScreen.setVisible(true);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(LoginScreen.this,
-                            "Error al abrir pantalla de registro: " + ex.getMessage(),
+                            MESSAGE_ERROR_REGISTER_SCREEN + ex.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);
-                    ex.printStackTrace();
                 }
             });
         });
 
         getRootPane().setDefaultButton(buttonLogin);
+    }
+
+    private void handleLogin() {
+        String username = textFieldUser.getText().trim();
+        String password = new String(passwordField.getPassword());
+
+        if (username.isEmpty() || password.isEmpty()) {
+            messageLabel.setText(AppConstants.MESSAGE_ERROR_FIELDS_REQUIRED);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            return;
+        }
+
+        UserLoginRequest loginRequest = new UserLoginRequest(username, password);
+
+        try {
+            Optional<User> authenticatedUser = loginService.authenticate(loginRequest);
+
+            if (authenticatedUser.isPresent()) {
+                User user = authenticatedUser.get();
+                messageLabel.setText("¡Bienvenido, " + user.getFullName() + "!");
+                messageLabel.setForeground(AppConstants.SUCCESS_COLOR);
+                JOptionPane.showMessageDialog(LoginScreen.this,
+                        "¡Bienvenido, " + user.getFullName() + "!",
+                        MESSAGE_LOGIN_SUCCESS_TITLE, JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                messageLabel.setText(MESSAGE_LOGIN_INVALID_CREDENTIALS);
+                messageLabel.setForeground(AppConstants.ERROR_COLOR);
+                passwordField.setText("");
+            }
+        } catch (Exception ex) {
+            messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            System.err.println("Error durante el proceso de login: " + ex.getMessage());
+        }
     }
 }

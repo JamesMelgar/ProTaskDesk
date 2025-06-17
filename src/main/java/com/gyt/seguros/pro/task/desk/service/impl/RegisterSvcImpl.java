@@ -1,8 +1,8 @@
 package com.gyt.seguros.pro.task.desk.service.impl;
 
 import com.gyt.seguros.pro.task.desk.dao.repository.UserRepository;
+import com.gyt.seguros.pro.task.desk.dto.UserRegistrationRequest;
 import com.gyt.seguros.pro.task.desk.model.User;
-
 import com.gyt.seguros.pro.task.desk.service.RegisterSvc;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,9 +20,13 @@ public class RegisterSvcImpl implements RegisterSvc {
         this.passwordEncoder = new BCryptPasswordEncoder();
     }
 
-
     @Override
-    public boolean registerUser(String username, String password, String fullName, String email) {
+    public boolean registerUser(UserRegistrationRequest request) {
+        String username = request.getUsername();
+        String password = request.getPassword();
+        String fullName = request.getFullName();
+        String email = request.getEmail();
+
         if (username == null || username.trim().isEmpty() ||
                 password == null || password.isEmpty() ||
                 fullName == null || fullName.trim().isEmpty() ||
@@ -35,7 +39,6 @@ public class RegisterSvcImpl implements RegisterSvc {
         if (password.length() < 6) {
             throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres.");
         }
-
 
         Optional<User> existingUserByUsername = userRepository.findByUsername(username);
         if (existingUserByUsername.isPresent()) {
@@ -57,11 +60,8 @@ public class RegisterSvcImpl implements RegisterSvc {
 
         try {
             userRepository.save(newUser);
-            System.out.println("RegisterSvc: Usuario '" + username + "' registrado con éxito en la base de datos.");
             return true;
         } catch (Exception e) {
-            System.err.println("Error al guardar el usuario en la base de datos: " + e.getMessage());
-            e.printStackTrace();
             throw new RuntimeException("Error al registrar el usuario debido a un problema interno.");
         }
     }
