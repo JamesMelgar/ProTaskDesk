@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Tasks")
+@Table(name = "task")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -56,6 +56,10 @@ public class Task {
 
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private Integer version;
 
     @PrePersist
     protected void onCreate() {

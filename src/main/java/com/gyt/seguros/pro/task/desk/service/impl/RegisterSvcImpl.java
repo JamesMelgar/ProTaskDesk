@@ -4,6 +4,11 @@ import com.gyt.seguros.pro.task.desk.dao.repository.UserRepository;
 import com.gyt.seguros.pro.task.desk.dto.UserRegistrationRequest;
 import com.gyt.seguros.pro.task.desk.model.User;
 import com.gyt.seguros.pro.task.desk.service.RegisterSvc;
+
+import com.gyt.seguros.pro.task.desk.service.exceptions.DuplicateEmailException;
+import com.gyt.seguros.pro.task.desk.service.exceptions.DuplicateUsernameException;
+import com.gyt.seguros.pro.task.desk.service.exceptions.InvalidRegistrationDataException;
+import com.gyt.seguros.pro.task.desk.service.exceptions.UserRegistrationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,23 +36,23 @@ public class RegisterSvcImpl implements RegisterSvc {
                 password == null || password.isEmpty() ||
                 fullName == null || fullName.trim().isEmpty() ||
                 email == null || email.trim().isEmpty()) {
-            throw new IllegalArgumentException("Todos los campos (usuario, contraseña, nombre completo, email) son obligatorios.");
+            throw new InvalidRegistrationDataException("Todos los campos (usuario, contraseña, nombre completo, email) son obligatorios.");
         }
         if (username.length() < 3) {
-            throw new IllegalArgumentException("El usuario debe tener al menos 3 caracteres.");
+            throw new InvalidRegistrationDataException("El usuario debe tener al menos 3 caracteres.");
         }
         if (password.length() < 6) {
-            throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres.");
+            throw new InvalidRegistrationDataException("La contraseña debe tener al menos 6 caracteres.");
         }
 
         Optional<User> existingUserByUsername = userRepository.findByUsername(username);
         if (existingUserByUsername.isPresent()) {
-            throw new IllegalArgumentException("El nombre de usuario '" + username + "' ya está en uso.");
+            throw new DuplicateUsernameException(username);
         }
 
         Optional<User> existingUserByEmail = userRepository.findByEmail(email);
         if (existingUserByEmail.isPresent()) {
-            throw new IllegalArgumentException("El email '" + email + "' ya está registrado.");
+            throw new DuplicateEmailException(email);
         }
 
         String hashedPassword = passwordEncoder.encode(password);
@@ -62,7 +67,7 @@ public class RegisterSvcImpl implements RegisterSvc {
             userRepository.save(newUser);
             return true;
         } catch (Exception e) {
-            throw new RuntimeException("Error al registrar el usuario debido a un problema interno.");
+            throw new UserRegistrationException("Error al registrar el usuario debido a un problema interno.", e);
         }
     }
 }

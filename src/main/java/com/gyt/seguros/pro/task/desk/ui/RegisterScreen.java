@@ -3,14 +3,23 @@ package com.gyt.seguros.pro.task.desk.ui;
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
 import com.gyt.seguros.pro.task.desk.service.RegisterSvc;
 import com.gyt.seguros.pro.task.desk.dto.UserRegistrationRequest;
+import com.gyt.seguros.pro.task.desk.service.exceptions.DuplicateEmailException;
+import com.gyt.seguros.pro.task.desk.service.exceptions.DuplicateUsernameException;
+import com.gyt.seguros.pro.task.desk.service.exceptions.UserRegistrationException;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import javax.swing.WindowConstants;
 
 public class RegisterScreen extends JFrame {
+
+    private static final Logger logger = LoggerFactory.getLogger(RegisterScreen.class);
 
     private JTextField usernameField;
     private JPasswordField passwordField;
@@ -21,7 +30,7 @@ public class RegisterScreen extends JFrame {
     private JButton cancelButton;
     private JLabel messageLabel;
 
-    private final transient RegisterSvc registerService;
+    private transient RegisterSvc registerService;
 
     private static final String TITLE_PANEL = "Sistema de Tareas - Registro de Usuario";
     private static final String TITLE_BUTTON_REGISTER = "Registrar";
@@ -35,16 +44,12 @@ public class RegisterScreen extends JFrame {
 
     private static final String MESSAGE_REGISTRATION_SUCCESS = "¡Registro exitoso! Ya puedes iniciar sesión.";
     private static final String MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE = "Registro Exitoso";
-    private static final String MESSAGE_REGISTRATION_GENERIC_ERROR = "Error al registrar. Inténtelo de nuevo o el usuario ya existe.";
     private static final String MESSAGE_PASSWORDS_MISMATCH = "Las contraseñas no coinciden.";
-    private static final String MESSAGE_REGISTRATION_RUNTIME_ERROR = "Ocurrió un error inesperado durante el registro: ";
-    private static final String MESSAGE_REGISTRATION_GENERAL_ERROR = "Ocurrió un error general. Contacte a soporte.";
 
 
     public RegisterScreen() {
-        this.registerService = ProTaskDesk.getBean(RegisterSvc.class);
-
         initComponents();
+        this.registerService = ProTaskDesk.getBean(RegisterSvc.class);
 
         setTitle(TITLE_PANEL);
         setContentPane(createMainPanel());
@@ -128,7 +133,7 @@ public class RegisterScreen extends JFrame {
 
         gbc.gridy++;
         gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        messageLabel.setForeground(AppConstants.ERROR_COLOR); // Asegurarse que el color inicial es el de error.
+        messageLabel.setForeground(AppConstants.ERROR_COLOR);
         mainPanel.add(messageLabel, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
@@ -160,7 +165,6 @@ public class RegisterScreen extends JFrame {
 
     private void setupEventHandlers() {
         registerButton.addActionListener(e -> handleRegistration());
-
         cancelButton.addActionListener(e -> dispose());
     }
 
@@ -172,14 +176,6 @@ public class RegisterScreen extends JFrame {
                 fullNameField.getText().trim(),
                 emailField.getText().trim()
         );
-
-        if (request.getUsername().isEmpty() || request.getPassword().isEmpty() ||
-                request.getConfirmPassword().isEmpty() || request.getFullName().isEmpty() ||
-                request.getEmail().isEmpty()) {
-            messageLabel.setText(AppConstants.MESSAGE_ERROR_FIELDS_REQUIRED);
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            return;
-        }
 
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             messageLabel.setText(MESSAGE_PASSWORDS_MISMATCH);
@@ -196,23 +192,34 @@ public class RegisterScreen extends JFrame {
                 messageLabel.setText(MESSAGE_REGISTRATION_SUCCESS);
                 messageLabel.setForeground(AppConstants.SUCCESS_COLOR);
                 JOptionPane.showMessageDialog(this, "Usuario '" + request.getUsername() + "' registrado con éxito.",
-                        MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE, JOptionPane.INFORMATION_MESSAGE);
+                        MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE, JOptionPane.INFORMATION_MESSAGE); // Corregido: Usar JOptionPane.INFORMATION_MESSAGE directamente
                 dispose();
             } else {
-                messageLabel.setText(MESSAGE_REGISTRATION_GENERIC_ERROR);
+                messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
                 messageLabel.setForeground(AppConstants.ERROR_COLOR);
             }
-        } catch (IllegalArgumentException ex) {
+        } catch (DuplicateUsernameException ex) {
             messageLabel.setText(ex.getMessage());
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            usernameField.setText("");
             passwordField.setText("");
             confirmPasswordField.setText("");
-        } catch (RuntimeException ex) {
-            messageLabel.setText(MESSAGE_REGISTRATION_RUNTIME_ERROR + ex.getMessage());
+            logger.warn("Intento de registro con usuario duplicado: {}", ex.getMessage()); // Uso del logger
+        } catch (DuplicateEmailException ex) {
+            messageLabel.setText(ex.getMessage());
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            emailField.setText("");
+            passwordField.setText("");
+            confirmPasswordField.setText("");
+            logger.warn("Intento de registro con email duplicado: {}", ex.getMessage()); // Uso del logger
+        } catch (UserRegistrationException ex) {
+            messageLabel.setText(ex.getMessage());
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            logger.error("Error de lógica de negocio al registrar usuario: {}", ex.getMessage(), ex);
         } catch (Exception ex) {
-            messageLabel.setText(MESSAGE_REGISTRATION_GENERAL_ERROR);
+            messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            logger.error("Error inesperado durante el registro de usuario: {}", ex.getMessage(), ex);
         }
     }
 }
