@@ -4,16 +4,24 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "user")
+@Table(name = "user",
+        indexes = {
+                @Index(name = "user_username_idx", columnList = "username"),
+                @Index(name = "user_email_idx", columnList = "email")
+        })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"createdProjects", "assignedTasks", "createdTasks", "projectMemberships"})
+@ToString(exclude = {"createdProjects", "assignedTasks", "createdTasks", "projectMemberships"})
 public class User {
 
     @Id
@@ -21,7 +29,7 @@ public class User {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "username", nullable = false, unique = true, length = 50)
+    @Column(name = "username", nullable = false, length = 50, unique = true)
     private String username;
 
     @Column(name = "password_hash", nullable = false, length = 255)
@@ -30,7 +38,7 @@ public class User {
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "email", nullable = false, unique = true, length = 100)
+    @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
 
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -43,19 +51,25 @@ public class User {
     @Column(name = "version", nullable = false)
     private Integer version;
 
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Project> createdProjects = new HashSet<>();
 
-    @OneToMany(mappedBy = "assignedTo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "assignedTo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Task> assignedTasks = new HashSet<>();
 
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Task> createdTasks = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<ProjectMember> projectMemberships = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (version == null) {
+            version = 0;
+        }
     }
 
     @PreUpdate

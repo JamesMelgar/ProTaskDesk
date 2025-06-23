@@ -1,7 +1,7 @@
 package com.gyt.seguros.pro.task.desk.model;
 
-import com.gyt.seguros.pro.task.desk.model.enums.TaskPriority;
 import com.gyt.seguros.pro.task.desk.model.enums.TaskStatus;
+import com.gyt.seguros.pro.task.desk.model.enums.TaskPriority;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "task")
+@Table(name = "task",
+        indexes = {
+                @Index(name = "task_name_idx", columnList = "task_name"),
+                @Index(name = "task_status_idx", columnList = "status"),
+                @Index(name = "task_priority_idx", columnList = "priority"),
+                @Index(name = "task_due_date_idx", columnList = "due_date"),
+                @Index(name = "task_project_id_idx", columnList = "project_id"),
+                @Index(name = "task_assigned_to_user_id_idx", columnList = "assigned_to_user_id"),
+                @Index(name = "task_created_by_user_id_idx", columnList = "created_by_user_id")
+        })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -70,6 +79,9 @@ public class Task {
         }
         if (priority == null) {
             priority = TaskPriority.MEDIUM;
+        }
+        if (version == null) {
+            version = 0;
         }
     }
 

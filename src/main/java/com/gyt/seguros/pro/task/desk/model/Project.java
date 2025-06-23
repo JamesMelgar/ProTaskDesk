@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,10 +14,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "project")
+@Table(name = "project",
+        indexes = {
+                @Index(name = "project_name_idx", columnList = "project_name"),
+                @Index(name = "project_status_idx", columnList = "status"),
+                @Index(name = "project_created_by_idx", columnList = "created_by_user_id"),
+                @Index(name = "project_type_id_idx", columnList = "project_type_id")
+        })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"tasks", "projectMembers"})
+@ToString(exclude = {"tasks", "projectMembers"})
 public class Project {
 
     @Id
@@ -40,6 +50,10 @@ public class Project {
     private ProjectStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_type_id", nullable = false)
+    private ProjectType projectType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", nullable = false)
     private User createdBy;
 
@@ -53,8 +67,11 @@ public class Project {
     @Column(name = "version", nullable = false)
     private Integer version;
 
-    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<Task> tasks = new HashSet<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<ProjectMember> projectMembers = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
@@ -62,6 +79,9 @@ public class Project {
         updatedAt = LocalDateTime.now();
         if (status == null) {
             status = ProjectStatus.ACTIVE;
+        }
+        if (version == null) {
+            version = 0;
         }
     }
 
