@@ -7,6 +7,7 @@ import com.gyt.seguros.pro.task.desk.model.ProjectType;
 import com.gyt.seguros.pro.task.desk.model.User;
 import com.gyt.seguros.pro.task.desk.model.enums.ProjectStatus;
 import com.gyt.seguros.pro.task.desk.service.CreateProjectSvc;
+import com.gyt.seguros.pro.task.desk.service.TaskCreationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,9 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
 
     @Autowired
     private ProjectTypeRepository projectTypeRepository;
+
+    @Autowired
+    private TaskCreationService taskCreationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -76,7 +80,11 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
         project.setProjectType(projectType);
         project.setCreatedBy(createdByUser);
 
-        return projectRepository.save(project);
+        Project savedProject = projectRepository.save(project);
+
+        taskCreationService.createDefaultTasksForProject(savedProject, createdByUser);
+
+        return savedProject;
     }
 
     @Override
@@ -113,10 +121,6 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
             return false;
         }
 
-        if (projectType == null) {
-            return false;
-        }
-
-        return true;
+        return projectType != null;
     }
 }

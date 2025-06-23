@@ -89,4 +89,17 @@ public class Task {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public Task(Project project, String taskName, String description,
+                TaskStatus status, TaskPriority priority, LocalDate dueDate,
+                User assignedTo, User createdBy) {
+        this.project = project;
+        this.taskName = taskName;
+        this.description = description;
+        this.status = status;
+        this.priority = priority;
+        this.dueDate = dueDate;
+        this.assignedTo = assignedTo;
+        this.createdBy = createdBy;
+    }
 }
