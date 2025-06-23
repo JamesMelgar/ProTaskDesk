@@ -3,6 +3,7 @@ package com.gyt.seguros.pro.task.desk.ui.components;
 import com.gyt.seguros.pro.task.desk.model.User;
 import com.gyt.seguros.pro.task.desk.ui.LoginScreen;
 import com.gyt.seguros.pro.task.desk.ui.HomeScreen;
+import com.gyt.seguros.pro.task.desk.ui.CreateProjectScreen;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
@@ -44,12 +45,22 @@ public class AppMenuBar {
         projectMenu.addSeparator();
 
         JMenuItem createProjectItem = createMenuItem("Crear Proyecto");
-        createProjectItem.addActionListener(e -> showMessage("Crear Proyecto - Próximamente"));
+        createProjectItem.addActionListener(e -> navigateToCreateProject());
         projectMenu.add(createProjectItem);
 
         JMenuItem createTaskItem = createMenuItem("Crear Tarea");
         createTaskItem.addActionListener(e -> showMessage("Crear Tarea - Próximamente"));
         projectMenu.add(createTaskItem);
+
+        projectMenu.addSeparator();
+
+        JMenuItem manageProjectsItem = createMenuItem("Gestionar Proyectos");
+        manageProjectsItem.addActionListener(e -> showMessage("Gestionar Proyectos - Próximamente"));
+        projectMenu.add(manageProjectsItem);
+
+        JMenuItem manageTasksItem = createMenuItem("Gestionar Tareas");
+        manageTasksItem.addActionListener(e -> showMessage("Gestionar Tareas - Próximamente"));
+        projectMenu.add(manageTasksItem);
 
         menuBar.add(fileMenu);
         menuBar.add(projectMenu);
@@ -88,6 +99,18 @@ public class AppMenuBar {
                 parentFrame.dispose();
             } catch (Exception ex) {
                 showError("Error al navegar a Home: " + ex.getMessage());
+            }
+        });
+    }
+
+    private void navigateToCreateProject() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                CreateProjectScreen createProjectScreen = new CreateProjectScreen(currentUser);
+                createProjectScreen.setVisible(true);
+                parentFrame.dispose();
+            } catch (Exception ex) {
+                showError("Error al navegar a Crear Proyecto: " + ex.getMessage());
             }
         });
     }

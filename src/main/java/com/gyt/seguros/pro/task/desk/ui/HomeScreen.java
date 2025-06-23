@@ -1,7 +1,7 @@
 package com.gyt.seguros.pro.task.desk.ui;
 
 import com.gyt.seguros.pro.task.desk.model.User;
-import com.gyt.seguros.pro.task.desk.ui.components.AppMenuBar; // Asegúrate de que esta importación sea correcta
+import com.gyt.seguros.pro.task.desk.ui.components.AppMenuBar;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
@@ -137,8 +137,8 @@ public class HomeScreen extends JFrame {
     }
 
     private void setupFrame() {
-        AppMenuBar menuBarBuilder = new AppMenuBar(currentUser, this); // Instancia de tu "builder" de menú
-        setJMenuBar(menuBarBuilder.getJMenuBar()); // Obtiene el JMenuBar y lo establece en el JFrame
+        AppMenuBar menuBarBuilder = new AppMenuBar(currentUser, this);
+        setJMenuBar(menuBarBuilder.getJMenuBar());
 
         setContentPane(mainPanel);
         setTitle(TITLE_PANEL);

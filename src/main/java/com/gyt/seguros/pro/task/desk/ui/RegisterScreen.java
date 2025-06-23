@@ -10,10 +10,11 @@ import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import javax.swing.WindowConstants;
 
@@ -21,6 +22,8 @@ public class RegisterScreen extends JFrame {
 
     private static final Logger logger = LoggerFactory.getLogger(RegisterScreen.class);
 
+    private JPanel mainPanel;
+    private JPanel registerFormPanel;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JPasswordField confirmPasswordField;
@@ -32,10 +35,11 @@ public class RegisterScreen extends JFrame {
 
     private transient RegisterSvc registerService;
 
-    private static final String TITLE_PANEL = "Sistema de Tareas - Registro de Usuario";
+    private static final String TITLE_PANEL = "ProTaskDesk - Registro de Usuario";
+    private static final String HEADER = "¡Únete a ProTaskDesk!";
+    private static final String SUBTITLE = "Crea tu cuenta para comenzar";
     private static final String TITLE_BUTTON_REGISTER = "Registrar";
     private static final String TITLE_BUTTON_CANCEL = "Cancelar";
-    private static final String HEADER_LABEL_TEXT = "Crear Nueva Cuenta";
     private static final String LABEL_FULL_NAME = "Nombre Completo:";
     private static final String LABEL_USERNAME = "Usuario:";
     private static final String LABEL_PASSWORD = "Contraseña:";
@@ -46,138 +50,247 @@ public class RegisterScreen extends JFrame {
     private static final String MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE = "Registro Exitoso";
     private static final String MESSAGE_PASSWORDS_MISMATCH = "Las contraseñas no coinciden.";
 
-
     public RegisterScreen() {
-        initComponents();
         this.registerService = ProTaskDesk.getBean(RegisterSvc.class);
+        initComponents();
 
+        setContentPane(mainPanel);
         setTitle(TITLE_PANEL);
-        setContentPane(createMainPanel());
-        setSize(450, 600);
+        setSize(650, 840);
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
         setupEventHandlers();
+        setVisible(true);
     }
 
     private void initComponents() {
-        usernameField = new JTextField(20);
-        passwordField = new JPasswordField(20);
-        confirmPasswordField = new JPasswordField(20);
-        fullNameField = new JTextField(20);
-        emailField = new JTextField(20);
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
 
-        registerButton = new JButton(TITLE_BUTTON_REGISTER);
-        cancelButton = new JButton(TITLE_BUTTON_CANCEL);
+        JPanel headerPanel = createHeaderPanel();
+        JPanel centerPanel = createCenterPanel();
+        JPanel footerPanel = createFooterPanel();
 
-        messageLabel = new JLabel("", SwingConstants.CENTER);
-        messageLabel.setForeground(AppConstants.ERROR_COLOR);
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
+        mainPanel.add(footerPanel, BorderLayout.SOUTH);
     }
 
-    private JPanel createMainPanel() {
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridBagLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(
-                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING,
-                AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING
+    private JPanel createHeaderPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(AppConstants.PRIMARY_BLUE);
+        panel.setBorder(BorderFactory.createEmptyBorder(40, 30, 40, 30));
+
+        JLabel titleLabel = new JLabel(HEADER, SwingConstants.CENTER);
+        titleLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
+
+        JLabel subtitleLabel = new JLabel(SUBTITLE, SwingConstants.CENTER);
+        subtitleLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 16));
+        subtitleLabel.setForeground(Color.WHITE);
+
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 0, 10));
+        textPanel.setBackground(AppConstants.PRIMARY_BLUE);
+        textPanel.add(titleLabel);
+        textPanel.add(subtitleLabel);
+
+        panel.add(textPanel, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JPanel createCenterPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
+        panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
+
+        registerFormPanel = createRegisterForm();
+
+        JPanel buttonPanel = createButtonPanel();
+
+        JPanel messagePanel = createMessagePanel();
+
+        panel.add(registerFormPanel, BorderLayout.CENTER);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
+        bottomPanel.add(buttonPanel, BorderLayout.CENTER);
+        bottomPanel.add(messagePanel, BorderLayout.SOUTH);
+
+        panel.add(bottomPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel createRegisterForm() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(AppConstants.CARD_BACKGROUND);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppConstants.PRIMARY_BLUE, 2),
+                BorderFactory.createEmptyBorder(30, 40, 30, 40)
         ));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(
-                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING,
-                AppConstants.GRIDBAG_INSETS_PADDING, AppConstants.GRIDBAG_INSETS_PADDING
-        );
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(10, 15, 10, 15);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        JLabel titleLabel = new JLabel(HEADER_LABEL_TEXT);
-        titleLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 22));
-        titleLabel.setForeground(Color.DARK_GRAY);
+        JLabel formTitle = new JLabel("Crear Nueva Cuenta", SwingConstants.CENTER);
+        formTitle.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 20));
+        formTitle.setForeground(AppConstants.PRIMARY_BLUE);
         gbc.gridx = 0; gbc.gridy = 0;
         gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
-        mainPanel.add(titleLabel, gbc);
+        panel.add(formTitle, gbc);
 
         gbc.gridy++;
-        gbc.insets = new Insets(15, 10, 10, 10);
-        mainPanel.add(new JLabel(""), gbc);
+        gbc.insets = new Insets(15, 15, 10, 15);
+        panel.add(new JLabel(""), gbc);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel(LABEL_FULL_NAME), gbc);
-        gbc.gridy++;
-        mainPanel.add(fullNameField, gbc);
+        addFieldToForm(panel, gbc, LABEL_FULL_NAME, fullNameField = createStyledTextField(), 2);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel(LABEL_USERNAME), gbc);
-        gbc.gridy++;
-        mainPanel.add(usernameField, gbc);
+        addFieldToForm(panel, gbc, LABEL_USERNAME, usernameField = createStyledTextField(), 3);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel(LABEL_PASSWORD), gbc);
-        gbc.gridy++;
-        mainPanel.add(passwordField, gbc);
+        addFieldToForm(panel, gbc, LABEL_EMAIL, emailField = createStyledTextField(), 4);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel(LABEL_CONFIRM_PASSWORD), gbc);
-        gbc.gridy++;
-        mainPanel.add(confirmPasswordField, gbc);
+        addFieldToForm(panel, gbc, LABEL_PASSWORD, passwordField = createStyledPasswordField(), 5);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.WEST;
-        mainPanel.add(new JLabel(LABEL_EMAIL), gbc);
-        gbc.gridy++;
-        mainPanel.add(emailField, gbc);
+        addFieldToForm(panel, gbc, LABEL_CONFIRM_PASSWORD, confirmPasswordField = createStyledPasswordField(), 6);
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        messageLabel.setForeground(AppConstants.ERROR_COLOR);
-        mainPanel.add(messageLabel, gbc);
+        return panel;
+    }
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 5));
-        Color blueButtonColor = new Color(0, 120, 215);
-        Color whiteTextColor = Color.WHITE;
-        Dimension buttonSize = new Dimension(100, 30);
+    private void addFieldToForm(JPanel panel, GridBagConstraints gbc, String labelText, JComponent field, int baseRow) {
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 14));
+        label.setForeground(AppConstants.TEXT_DARK_GRAY);
+        gbc.gridx = 0;
+        gbc.gridy = baseRow * 2 - 2;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 15, 5, 15);
+        panel.add(label, gbc);
 
-        registerButton.setBackground(blueButtonColor);
-        registerButton.setForeground(whiteTextColor);
-        registerButton.setOpaque(true);
-        registerButton.setBorderPainted(false);
-        registerButton.setPreferredSize(buttonSize);
+        gbc.gridy = baseRow * 2 - 1;
+        gbc.insets = new Insets(0, 15, 10, 15);
+        panel.add(field, gbc);
+    }
 
-        cancelButton.setBackground(Color.GRAY);
-        cancelButton.setForeground(whiteTextColor);
-        cancelButton.setOpaque(true);
-        cancelButton.setBorderPainted(false);
-        cancelButton.setPreferredSize(buttonSize);
+    private JTextField createStyledTextField() {
+        JTextField field = new JTextField(20);
+        field.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 14));
+        field.setPreferredSize(new Dimension(320, 35));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppConstants.PRIMARY_BLUE),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        return field;
+    }
 
-        buttonPanel.add(registerButton);
-        buttonPanel.add(cancelButton);
+    private JPasswordField createStyledPasswordField() {
+        JPasswordField field = new JPasswordField(20);
+        field.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 14));
+        field.setPreferredSize(new Dimension(320, 35));
+        field.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(AppConstants.PRIMARY_BLUE),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        return field;
+    }
 
-        gbc.gridy++;
-        gbc.gridx = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-        mainPanel.add(buttonPanel, gbc);
+    private JPanel createButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 20));
+        panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
 
-        return mainPanel;
+        registerButton = createStyledButton(TITLE_BUTTON_REGISTER, AppConstants.PRIMARY_BLUE);
+        cancelButton = createStyledButton(TITLE_BUTTON_CANCEL, AppConstants.ACCENT_BLUE);
+
+        panel.add(registerButton);
+        panel.add(cancelButton);
+
+        return panel;
+    }
+
+    private JPanel createMessagePanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
+        panel.setBorder(BorderFactory.createEmptyBorder(5, 20, 15, 20));
+
+        messageLabel = new JLabel("", SwingConstants.CENTER);
+        messageLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 14));
+        messageLabel.setPreferredSize(new Dimension(500, 25));
+
+        panel.add(messageLabel);
+        return panel;
+    }
+
+    private JButton createStyledButton(String text, Color backgroundColor) {
+        JButton button = new JButton(text);
+        button.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 12));
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setPreferredSize(new Dimension(130, AppConstants.BUTTON_HEIGHT));
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setOpaque(true);
+
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor.darker());
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(backgroundColor);
+            }
+        });
+
+        return button;
+    }
+
+    private JPanel createFooterPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel footerLabel = new JLabel("© 2025 ProTaskDesk - Sistema de Gestión de Tareas y Proyectos", SwingConstants.CENTER);
+        footerLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 11));
+        footerLabel.setForeground(AppConstants.TEXT_DARK_GRAY);
+
+        panel.add(footerLabel, BorderLayout.CENTER);
+        return panel;
     }
 
     private void setupEventHandlers() {
-        registerButton.addActionListener(e -> handleRegistration());
+        registerButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleRegistration();
+            }
+        });
+
         cancelButton.addActionListener(e -> dispose());
+
+        getRootPane().setDefaultButton(registerButton);
     }
 
     private void handleRegistration() {
-        UserRegistrationRequest request = new UserRegistrationRequest(
-                usernameField.getText().trim(),
-                new String(passwordField.getPassword()),
-                new String(confirmPasswordField.getPassword()),
-                fullNameField.getText().trim(),
-                emailField.getText().trim()
-        );
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
+        String fullName = fullNameField.getText().trim();
+        String email = emailField.getText().trim();
 
-        if (!request.getPassword().equals(request.getConfirmPassword())) {
+        if (username.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() ||
+                fullName.isEmpty() || email.isEmpty()) {
+            messageLabel.setText(AppConstants.MESSAGE_ERROR_FIELDS_REQUIRED);
+            messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
             messageLabel.setText(MESSAGE_PASSWORDS_MISMATCH);
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
             passwordField.setText("");
@@ -185,15 +298,24 @@ public class RegisterScreen extends JFrame {
             return;
         }
 
+        UserRegistrationRequest request = new UserRegistrationRequest(
+                username, password, confirmPassword, fullName, email
+        );
+
         try {
             boolean registrationSuccess = registerService.registerUser(request);
 
             if (registrationSuccess) {
                 messageLabel.setText(MESSAGE_REGISTRATION_SUCCESS);
                 messageLabel.setForeground(AppConstants.SUCCESS_COLOR);
-                JOptionPane.showMessageDialog(this, "Usuario '" + request.getUsername() + "' registrado con éxito.",
-                        MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE, JOptionPane.INFORMATION_MESSAGE); // Corregido: Usar JOptionPane.INFORMATION_MESSAGE directamente
-                dispose();
+
+                SwingUtilities.invokeLater(() -> {
+                    JOptionPane.showMessageDialog(this,
+                            "Usuario '" + request.getUsername() + "' registrado con éxito.",
+                            MESSAGE_REGISTRATION_SUCCESS_DIALOG_TITLE,
+                            JOptionPane.INFORMATION_MESSAGE);
+                    dispose();
+                });
             } else {
                 messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
                 messageLabel.setForeground(AppConstants.ERROR_COLOR);
@@ -204,14 +326,14 @@ public class RegisterScreen extends JFrame {
             usernameField.setText("");
             passwordField.setText("");
             confirmPasswordField.setText("");
-            logger.warn("Intento de registro con usuario duplicado: {}", ex.getMessage()); // Uso del logger
+            logger.warn("Intento de registro con usuario duplicado: {}", ex.getMessage());
         } catch (DuplicateEmailException ex) {
             messageLabel.setText(ex.getMessage());
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
             emailField.setText("");
             passwordField.setText("");
             confirmPasswordField.setText("");
-            logger.warn("Intento de registro con email duplicado: {}", ex.getMessage()); // Uso del logger
+            logger.warn("Intento de registro con email duplicado: {}", ex.getMessage());
         } catch (UserRegistrationException ex) {
             messageLabel.setText(ex.getMessage());
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
