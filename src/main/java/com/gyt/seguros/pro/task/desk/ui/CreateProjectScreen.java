@@ -1,24 +1,30 @@
 package com.gyt.seguros.pro.task.desk.ui;
 
+import com.gyt.seguros.pro.task.desk.ProTaskDesk;
+import com.gyt.seguros.pro.task.desk.model.Project;
+import com.gyt.seguros.pro.task.desk.model.ProjectType;
 import com.gyt.seguros.pro.task.desk.model.User;
+import com.gyt.seguros.pro.task.desk.service.CreateProjectSvc;
 import com.gyt.seguros.pro.task.desk.ui.components.AppMenuBar;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
-
 import javax.swing.*;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class CreateProjectScreen extends JFrame {
+
+    private CreateProjectSvc createProjectSvc;
 
     private final User currentUser;
     private JPanel mainPanel;
     private JTextField projectNameField;
     private JTextArea descriptionArea;
-    private JComboBox<String> projectTypeComboBox;
+    private JComboBox<ProjectType> projectTypeComboBox;
     private JTextField startDateField;
     private JTextField endDateField;
-    private JComboBox<String> statusComboBox;
     private JButton saveButton;
     private JButton cancelButton;
 
@@ -31,8 +37,10 @@ public class CreateProjectScreen extends JFrame {
 
     public CreateProjectScreen(User currentUser) {
         this.currentUser = currentUser;
+        this.createProjectSvc = ProTaskDesk.getBean(CreateProjectSvc.class);
         initComponents();
         setupFrame();
+        loadProjectTypes();
     }
 
     private void initComponents() {
@@ -40,9 +48,7 @@ public class CreateProjectScreen extends JFrame {
         mainPanel.setBackground(BACKGROUND_COLOR);
 
         JPanel headerPanel = createHeaderPanel();
-
         JPanel formPanel = createFormPanel();
-
         JPanel buttonPanel = createButtonPanel();
 
         mainPanel.add(headerPanel, BorderLayout.NORTH);
@@ -102,12 +108,19 @@ public class CreateProjectScreen extends JFrame {
         gbc.gridx = 1; gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
-        projectTypeComboBox = new JComboBox<>(new String[]{
-                "Desarrollo de Software",
-                "Marketing Digital",
-                "Proyecto General"
-        });
+        projectTypeComboBox = new JComboBox<>();
         projectTypeComboBox.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 12));
+        projectTypeComboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                          int index, boolean isSelected, boolean cellHasFocus) {
+                Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof ProjectType) {
+                    setText(((ProjectType) value).getTypeName());
+                }
+                return component;
+            }
+        });
         panel.add(projectTypeComboBox, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2;
@@ -157,18 +170,6 @@ public class CreateProjectScreen extends JFrame {
         endDateField = new JTextField(LocalDate.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE));
         endDateField.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 12));
         panel.add(endDateField, gbc);
-
-        gbc.gridx = 0; gbc.gridy = 5;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.weightx = 0;
-        panel.add(createLabel("Estado:"), gbc);
-
-        gbc.gridx = 1; gbc.gridy = 5;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        statusComboBox = new JComboBox<>(new String[]{"ACTIVE", "PAUSED", "COMPLETED", "CANCELED"});
-        statusComboBox.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.PLAIN, 12));
-        panel.add(statusComboBox, gbc);
 
         JPanel wrapperPanel = new JPanel(new GridBagLayout());
         wrapperPanel.setBackground(BACKGROUND_COLOR);
@@ -228,37 +229,119 @@ public class CreateProjectScreen extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    private void saveProject() {
-        if (projectNameField.getText().trim().isEmpty()) {
-            showError("El nombre del proyecto es obligatorio.");
-            return;
-        }
-
-        if (startDateField.getText().trim().isEmpty()) {
-            showError("La fecha de inicio es obligatoria.");
-            return;
-        }
-
-        if (endDateField.getText().trim().isEmpty()) {
-            showError("La fecha de fin es obligatoria.");
-            return;
-        }
-
+    private void loadProjectTypes() {
         try {
-            LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
-            LocalDate endDate = LocalDate.parse(endDateField.getText().trim());
+            List<ProjectType> projectTypes = createProjectSvc.getAllProjectTypes();
 
-            if (endDate.isBefore(startDate)) {
-                showError("La fecha de fin debe ser mayor o igual a la fecha de inicio.");
+            DefaultComboBoxModel<ProjectType> model = new DefaultComboBoxModel<>();
+            for (ProjectType type : projectTypes) {
+                model.addElement(type);
+            }
+
+            projectTypeComboBox.setModel(model);
+
+            if (projectTypes.isEmpty()) {
+                showError("No hay tipos de proyecto disponibles.");
+                saveButton.setEnabled(false);
+            }
+        } catch (Exception ex) {
+            showError("Error al cargar tipos de proyecto: " + ex.getMessage());
+            saveButton.setEnabled(false);
+        }
+    }
+
+    private void saveProject() {
+        try {
+            String projectName = projectNameField.getText().trim();
+            if (projectName.isEmpty()) {
+                showError("El nombre del proyecto es obligatorio.");
+                projectNameField.requestFocus();
                 return;
             }
 
-            showSuccess("Proyecto creado exitosamente!");
+            if (createProjectSvc.projectNameExists(projectName)) {
+                showError("Ya existe un proyecto con el nombre: " + projectName);
+                projectNameField.requestFocus();
+                return;
+            }
 
-            clearForm();
+            String description = descriptionArea.getText().trim();
+            if (description.isEmpty()) {
+                description = null;
+            }
 
+            ProjectType selectedType = (ProjectType) projectTypeComboBox.getSelectedItem();
+            if (selectedType == null) {
+                showError("Debe seleccionar un tipo de proyecto.");
+                projectTypeComboBox.requestFocus();
+                return;
+            }
+
+            LocalDate startDate;
+            LocalDate endDate;
+
+            try {
+                String startDateText = startDateField.getText().trim();
+                if (startDateText.isEmpty()) {
+                    showError("La fecha de inicio es obligatoria.");
+                    startDateField.requestFocus();
+                    return;
+                }
+                startDate = LocalDate.parse(startDateText);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha de inicio inválido. Use el formato YYYY-MM-DD.");
+                startDateField.requestFocus();
+                return;
+            }
+
+            try {
+                String endDateText = endDateField.getText().trim();
+                if (endDateText.isEmpty()) {
+                    showError("La fecha de fin es obligatoria.");
+                    endDateField.requestFocus();
+                    return;
+                }
+                endDate = LocalDate.parse(endDateText);
+            } catch (DateTimeParseException ex) {
+                showError("Formato de fecha de fin inválido. Use el formato YYYY-MM-DD.");
+                endDateField.requestFocus();
+                return;
+            }
+
+            if (!createProjectSvc.validateProjectDates(startDate, endDate)) {
+                showError("Las fechas no son válidas. Verifique que:\n" +
+                        "- La fecha de inicio no sea anterior a hoy\n" +
+                        "- La fecha de fin sea posterior o igual a la fecha de inicio");
+                startDateField.requestFocus();
+                return;
+            }
+
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            saveButton.setEnabled(false);
+
+            Project createdProject = createProjectSvc.createProject(
+                    projectName,
+                    description,
+                    startDate,
+                    endDate,
+                    selectedType,
+                    currentUser
+            );
+
+            if (createdProject != null) {
+                showSuccess("Proyecto '" + createdProject.getProjectName() + "' creado exitosamente!");
+                clearForm();
+            } else {
+                showError("Error al crear el proyecto. Inténtelo nuevamente.");
+            }
+
+        } catch (IllegalArgumentException ex) {
+            showError(ex.getMessage());
         } catch (Exception ex) {
-            showError("Error en el formato de las fechas. Use el formato YYYY-MM-DD.");
+            showError("Error inesperado al crear el proyecto: " + ex.getMessage());
+        } finally {
+            setCursor(Cursor.getDefaultCursor());
+            saveButton.setEnabled(true);
         }
     }
 
@@ -291,10 +374,11 @@ public class CreateProjectScreen extends JFrame {
     private void clearForm() {
         projectNameField.setText("");
         descriptionArea.setText("");
-        projectTypeComboBox.setSelectedIndex(0);
+        if (projectTypeComboBox.getItemCount() > 0) {
+            projectTypeComboBox.setSelectedIndex(0);
+        }
         startDateField.setText(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         endDateField.setText(LocalDate.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE));
-        statusComboBox.setSelectedIndex(0);
     }
 
     private void showSuccess(String message) {
