@@ -15,7 +15,7 @@ import java.util.Optional;
 import javax.swing.WindowConstants;
 
 public class LoginScreen extends JFrame {
-    private JPanel LoginPanel;
+    private JPanel loginPanel;
     private JLabel labelUser;
     private JTextField textFieldUser;
     private JLabel labelPassword;
@@ -24,12 +24,11 @@ public class LoginScreen extends JFrame {
     private JButton buttonRegister;
     private JLabel messageLabel;
 
-    private LoginSvc loginService;
+    private transient LoginSvc loginService;
 
     private static final String TITLE_PANEL = "Sistema Gestion de Tareas";
     private static final String HEADER = "Login Swing";
 
-    private static final String MESSAGE_LOGIN_SUCCESS_TITLE = "Login Exitoso";
     private static final String MESSAGE_LOGIN_INVALID_CREDENTIALS = "Usuario o contraseña incorrectos.";
     private static final String MESSAGE_ERROR_REGISTER_SCREEN = "Error al abrir pantalla de registro: ";
 
@@ -39,7 +38,7 @@ public class LoginScreen extends JFrame {
 
         initComponents();
 
-        setContentPane(LoginPanel);
+        setContentPane(loginPanel);
         setTitle(TITLE_PANEL);
         setSize(500, 500);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -49,9 +48,9 @@ public class LoginScreen extends JFrame {
     }
 
     private void initComponents() {
-        LoginPanel = new JPanel();
-        LoginPanel.setLayout(new GridBagLayout());
-        LoginPanel.setBorder(BorderFactory.createEmptyBorder(
+        loginPanel = new JPanel();
+        loginPanel.setLayout(new GridBagLayout());
+        loginPanel.setBorder(BorderFactory.createEmptyBorder(
                 AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING,
                 AppConstants.PANEL_PADDING, AppConstants.PANEL_PADDING
         ));
@@ -69,25 +68,25 @@ public class LoginScreen extends JFrame {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
-        LoginPanel.add(titleLabel, gbc);
+        loginPanel.add(titleLabel, gbc);
 
         gbc.gridy++;
         gbc.insets = new Insets(20, 10, 10, 10);
-        LoginPanel.add(new JLabel(""), gbc);
+        loginPanel.add(new JLabel(""), gbc);
 
         labelUser = new JLabel("Username");
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.WEST;
-        LoginPanel.add(labelUser, gbc);
+        loginPanel.add(labelUser, gbc);
 
         textFieldUser = new JTextField(20);
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        LoginPanel.add(textFieldUser, gbc);
+        loginPanel.add(textFieldUser, gbc);
 
         labelPassword = new JLabel("Password");
         gbc.gridx = 0;
@@ -95,14 +94,14 @@ public class LoginScreen extends JFrame {
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.NONE;
-        LoginPanel.add(labelPassword, gbc);
+        loginPanel.add(labelPassword, gbc);
 
         passwordField = new JPasswordField(20);
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        LoginPanel.add(passwordField, gbc);
+        loginPanel.add(passwordField, gbc);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonLogin = new JButton("Login");
@@ -133,7 +132,7 @@ public class LoginScreen extends JFrame {
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.NONE;
         gbc.anchor = GridBagConstraints.CENTER;
-        LoginPanel.add(buttonPanel, gbc);
+        loginPanel.add(buttonPanel, gbc);
 
         messageLabel = new JLabel("", SwingConstants.CENTER);
         messageLabel.setForeground(AppConstants.ERROR_COLOR);
@@ -141,7 +140,7 @@ public class LoginScreen extends JFrame {
         gbc.gridy = 7;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        LoginPanel.add(messageLabel, gbc);
+        loginPanel.add(messageLabel, gbc);
     }
 
     private void setupEventHandlers() {
@@ -185,11 +184,22 @@ public class LoginScreen extends JFrame {
 
             if (authenticatedUser.isPresent()) {
                 User user = authenticatedUser.get();
+
                 messageLabel.setText("¡Bienvenido, " + user.getFullName() + "!");
                 messageLabel.setForeground(AppConstants.SUCCESS_COLOR);
-                JOptionPane.showMessageDialog(LoginScreen.this,
-                        "¡Bienvenido, " + user.getFullName() + "!",
-                        MESSAGE_LOGIN_SUCCESS_TITLE, JOptionPane.INFORMATION_MESSAGE);
+
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        HomeScreen homeScreen = new HomeScreen(user);
+                        homeScreen.setVisible(true);
+                        this.dispose();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(LoginScreen.this,
+                                "Error al abrir pantalla principal: " + ex.getMessage(),
+                                "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+
             } else {
                 messageLabel.setText(MESSAGE_LOGIN_INVALID_CREDENTIALS);
                 messageLabel.setForeground(AppConstants.ERROR_COLOR);
@@ -198,7 +208,6 @@ public class LoginScreen extends JFrame {
         } catch (Exception ex) {
             messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
             messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            System.err.println("Error durante el proceso de login: " + ex.getMessage());
         }
     }
 }
