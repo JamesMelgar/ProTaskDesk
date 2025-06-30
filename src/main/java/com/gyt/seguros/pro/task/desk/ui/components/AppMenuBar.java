@@ -1,15 +1,15 @@
 package com.gyt.seguros.pro.task.desk.ui.components;
 
-import com.gyt.seguros.pro.task.desk.model.User;
-import com.gyt.seguros.pro.task.desk.ui.LoginScreen;
-import com.gyt.seguros.pro.task.desk.ui.HomeScreen;
-import com.gyt.seguros.pro.task.desk.ui.CreateProjectScreen;
+import com.gyt.seguros.pro.task.desk.dal.model.User;
+import com.gyt.seguros.pro.task.desk.ui.screen.LoginScreen;
+import com.gyt.seguros.pro.task.desk.ui.screen.HomeScreen;
+import com.gyt.seguros.pro.task.desk.ui.screen.CreateProjectScreen;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class AppMenuBar {
+public final class AppMenuBar {
     private final User currentUser;
     private final JFrame parentFrame;
     private JMenuBar menuBar;

@@ -1,6 +1,6 @@
 package com.gyt.seguros.pro.task.desk;
 
-import com.gyt.seguros.pro.task.desk.ui.LoginScreen;
+import com.gyt.seguros.pro.task.desk.ui.screen.LoginScreen;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -28,6 +28,7 @@ public class ProTaskDesk {
     }
 
     public static ConfigurableApplicationContext getApplicationContext() {
+
         return applicationContext;
     }
 }
