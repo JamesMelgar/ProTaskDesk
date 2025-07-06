@@ -1,10 +1,12 @@
 package com.gyt.seguros.pro.task.desk.ui.screen;
 
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
+import com.gyt.seguros.pro.task.desk.config.GlobalExceptionHandler;
 import com.gyt.seguros.pro.task.desk.svc.RegisterSvc;
 import com.gyt.seguros.pro.task.desk.svc.dto.UserRegistrationRequest;
 import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateEmailException;
 import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateUsernameException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidRegistrationDataException;
 import com.gyt.seguros.pro.task.desk.svc.exceptions.UserRegistrationException;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
@@ -34,6 +36,7 @@ public class RegisterScreen extends JFrame {
     private JLabel messageLabel;
 
     private transient RegisterSvc registerService;
+    private transient GlobalExceptionHandler exceptionHandler;
 
     private static final String TITLE_PANEL = "ProTaskDesk - Registro de Usuario";
     private static final String HEADER = "¡Únete a ProTaskDesk!";
@@ -52,6 +55,7 @@ public class RegisterScreen extends JFrame {
 
     public RegisterScreen() {
         this.registerService = ProTaskDesk.getBean(RegisterSvc.class);
+        this.exceptionHandler = ProTaskDesk.getBean(GlobalExceptionHandler.class);
         initComponents();
 
         setContentPane(mainPanel);
@@ -321,27 +325,28 @@ public class RegisterScreen extends JFrame {
                 messageLabel.setForeground(AppConstants.ERROR_COLOR);
             }
         } catch (DuplicateUsernameException ex) {
-            messageLabel.setText(ex.getMessage());
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            usernameField.setText("");
-            passwordField.setText("");
-            confirmPasswordField.setText("");
-            logger.warn("Intento de registro con usuario duplicado: {}", ex.getMessage());
+            exceptionHandler.handleDuplicateUsernameException(ex, this);
+            clearSensitiveFields();
         } catch (DuplicateEmailException ex) {
-            messageLabel.setText(ex.getMessage());
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            emailField.setText("");
-            passwordField.setText("");
-            confirmPasswordField.setText("");
-            logger.warn("Intento de registro con email duplicado: {}", ex.getMessage());
+            exceptionHandler.handleDuplicateEmailException(ex, this);
+            clearSensitiveFields();
+        } catch (InvalidRegistrationDataException ex) {
+            exceptionHandler.handleInvalidRegistrationDataException(ex, this);
         } catch (UserRegistrationException ex) {
-            messageLabel.setText(ex.getMessage());
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            logger.error("Error de lógica de negocio al registrar usuario: {}", ex.getMessage(), ex);
+            exceptionHandler.handleUserRegistrationException(ex, this);
         } catch (Exception ex) {
-            messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
-            logger.error("Error inesperado durante el registro de usuario: {}", ex.getMessage(), ex);
+            exceptionHandler.handleException(ex, this, "Error inesperado durante el registro de usuario");
+        }
+    }
+
+    private void clearSensitiveFields() {
+        passwordField.setText("");
+        confirmPasswordField.setText("");
+        if (messageLabel.getText().contains("usuario")) {
+            usernameField.setText("");
+        }
+        if (messageLabel.getText().contains("email")) {
+            emailField.setText("");
         }
     }
 }

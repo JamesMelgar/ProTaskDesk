@@ -1,9 +1,11 @@
 package com.gyt.seguros.pro.task.desk.ui.screen;
 
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
+import com.gyt.seguros.pro.task.desk.config.GlobalExceptionHandler;
 import com.gyt.seguros.pro.task.desk.svc.dto.UserLoginRequest;
 import com.gyt.seguros.pro.task.desk.dal.model.User;
 import com.gyt.seguros.pro.task.desk.svc.LoginSvc;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidLoginCredentialsException;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
@@ -26,6 +28,7 @@ public class LoginScreen extends JFrame {
     private JLabel messageLabel;
 
     private transient LoginSvc loginService;
+    private transient GlobalExceptionHandler exceptionHandler;
 
     private static final String TITLE_PANEL = "ProTaskDesk - Sistema de Gestión de Tareas";
     private static final String HEADER = "¡Bienvenido a ProTaskDesk!";
@@ -36,6 +39,7 @@ public class LoginScreen extends JFrame {
 
     public LoginScreen() {
         this.loginService = ProTaskDesk.getBean(LoginSvc.class);
+        this.exceptionHandler = ProTaskDesk.getBean(GlobalExceptionHandler.class);
         initComponents();
 
         setContentPane(mainPanel);
@@ -182,7 +186,6 @@ public class LoginScreen extends JFrame {
         gbc.insets = new Insets(10, 15, 15, 15);
         panel.add(buttonPanel, gbc);
 
-
         messageLabel = new JLabel("", SwingConstants.CENTER);
         messageLabel.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 14));
         gbc.gridx = 0;
@@ -191,7 +194,6 @@ public class LoginScreen extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 15, 0, 15);
         panel.add(messageLabel, gbc);
-
 
         return panel;
     }
@@ -247,9 +249,8 @@ public class LoginScreen extends JFrame {
                     RegisterScreen registerScreen = new RegisterScreen();
                     registerScreen.setVisible(true);
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(LoginScreen.this,
-                            MESSAGE_ERROR_REGISTER_SCREEN + ex.getMessage(),
-                            "Error", JOptionPane.ERROR_MESSAGE);
+                    exceptionHandler.handleException(ex, LoginScreen.this,
+                            MESSAGE_ERROR_REGISTER_SCREEN + ex.getMessage());
                 }
             });
         });
@@ -284,20 +285,20 @@ public class LoginScreen extends JFrame {
                         homeScreen.setVisible(true);
                         this.dispose();
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(LoginScreen.this,
-                                "Error al abrir pantalla principal: " + ex.getMessage(),
-                                "Error", JOptionPane.ERROR_MESSAGE);
+                        exceptionHandler.handleException(ex, LoginScreen.this,
+                                "Error al abrir pantalla principal: " + ex.getMessage());
                     }
                 });
 
             } else {
-                messageLabel.setText(MESSAGE_LOGIN_INVALID_CREDENTIALS);
-                messageLabel.setForeground(AppConstants.ERROR_COLOR);
+                // Crear y lanzar excepción personalizada para credenciales inválidas
+                InvalidLoginCredentialsException loginException =
+                        new InvalidLoginCredentialsException(MESSAGE_LOGIN_INVALID_CREDENTIALS);
+                exceptionHandler.handleInvalidLoginCredentialsException(loginException, this);
                 passwordField.setText("");
             }
         } catch (Exception ex) {
-            messageLabel.setText(AppConstants.MESSAGE_ERROR_UNEXPECTED);
-            messageLabel.setForeground(AppConstants.ERROR_COLOR);
+            exceptionHandler.handleException(ex, this, AppConstants.MESSAGE_ERROR_UNEXPECTED);
         }
     }
 }
