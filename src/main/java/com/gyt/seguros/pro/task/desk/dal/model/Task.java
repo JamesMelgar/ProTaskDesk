@@ -3,6 +3,7 @@ package com.gyt.seguros.pro.task.desk.dal.model;
 import com.gyt.seguros.pro.task.desk.dal.model.enums.TaskStatus;
 import com.gyt.seguros.pro.task.desk.dal.model.enums.TaskPriority;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Task {
 
     @Id

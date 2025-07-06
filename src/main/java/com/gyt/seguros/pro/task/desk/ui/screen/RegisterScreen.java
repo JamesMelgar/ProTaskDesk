@@ -12,20 +12,12 @@ import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.swing.WindowConstants;
 
 public class RegisterScreen extends JFrame {
 
-    private static final Logger logger = LoggerFactory.getLogger(RegisterScreen.class);
-
     private JPanel mainPanel;
-    private JPanel registerFormPanel;
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JPasswordField confirmPasswordField;
@@ -107,8 +99,7 @@ public class RegisterScreen extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
         panel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
-
-        registerFormPanel = createRegisterForm();
+        JPanel registerFormPanel = createRegisterForm();
 
         JPanel buttonPanel = createButtonPanel();
 
@@ -151,17 +142,16 @@ public class RegisterScreen extends JFrame {
         gbc.gridy++;
         gbc.insets = new Insets(15, 15, 10, 15);
         panel.add(new JLabel(""), gbc);
-
-        addFieldToForm(panel, gbc, LABEL_FULL_NAME, fullNameField = createStyledTextField(), 2);
-
-        addFieldToForm(panel, gbc, LABEL_USERNAME, usernameField = createStyledTextField(), 3);
-
-        addFieldToForm(panel, gbc, LABEL_EMAIL, emailField = createStyledTextField(), 4);
-
-        addFieldToForm(panel, gbc, LABEL_PASSWORD, passwordField = createStyledPasswordField(), 5);
-
-        addFieldToForm(panel, gbc, LABEL_CONFIRM_PASSWORD, confirmPasswordField = createStyledPasswordField(), 6);
-
+        fullNameField = createStyledTextField();
+        addFieldToForm(panel, gbc, LABEL_FULL_NAME, fullNameField, 2);
+        usernameField = createStyledTextField();
+        addFieldToForm(panel, gbc, LABEL_USERNAME, usernameField, 3);
+        emailField = createStyledTextField();
+        addFieldToForm(panel, gbc, LABEL_EMAIL, emailField , 4);
+        passwordField = createStyledPasswordField();
+        addFieldToForm(panel, gbc, LABEL_PASSWORD, passwordField , 5);
+        confirmPasswordField = createStyledPasswordField();
+        addFieldToForm(panel, gbc, LABEL_CONFIRM_PASSWORD, confirmPasswordField, 6);
         return panel;
     }
 
@@ -268,12 +258,7 @@ public class RegisterScreen extends JFrame {
     }
 
     private void setupEventHandlers() {
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleRegistration();
-            }
-        });
+        registerButton.addActionListener(e -> handleRegistration());
 
         cancelButton.addActionListener(e -> dispose());
 
@@ -302,9 +287,13 @@ public class RegisterScreen extends JFrame {
             return;
         }
 
-        UserRegistrationRequest request = new UserRegistrationRequest(
-                username, password, confirmPassword, fullName, email
-        );
+        UserRegistrationRequest request = UserRegistrationRequest.builder()
+                .username(username)
+                .password(password)
+                .confirmPassword(confirmPassword)
+                .fullName(fullName)
+                .email(email)
+                .build();
 
         try {
             boolean registrationSuccess = registerService.registerUser(request);
