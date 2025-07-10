@@ -1,10 +1,15 @@
 package com.gyt.seguros.pro.task.desk.ui.screen;
 
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
+import com.gyt.seguros.pro.task.desk.config.GlobalExceptionHandler;
 import com.gyt.seguros.pro.task.desk.dal.model.Project;
 import com.gyt.seguros.pro.task.desk.dal.model.ProjectType;
 import com.gyt.seguros.pro.task.desk.dal.model.User;
+import com.gyt.seguros.pro.task.desk.dal.model.enums.ProjectStatus;
 import com.gyt.seguros.pro.task.desk.svc.CreateProjectSvc;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateProjectNameException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidProjectDatesException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.ProjectCreationException;
 import com.gyt.seguros.pro.task.desk.ui.components.AppMenuBar;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 import javax.swing.*;
@@ -16,7 +21,8 @@ import java.util.List;
 
 public class CreateProjectScreen extends JFrame {
 
-    private CreateProjectSvc createProjectSvc;
+    private final CreateProjectSvc createProjectSvc;
+    private final GlobalExceptionHandler exceptionHandler;
 
     private final User currentUser;
     private JPanel mainPanel;
@@ -38,6 +44,7 @@ public class CreateProjectScreen extends JFrame {
     public CreateProjectScreen(User currentUser) {
         this.currentUser = currentUser;
         this.createProjectSvc = ProTaskDesk.getBean(CreateProjectSvc.class);
+        this.exceptionHandler = ProTaskDesk.getBean(GlobalExceptionHandler.class);
         initComponents();
         setupFrame();
         loadProjectTypes();
@@ -245,7 +252,8 @@ public class CreateProjectScreen extends JFrame {
                 saveButton.setEnabled(false);
             }
         } catch (Exception ex) {
-            showError("Error al cargar tipos de proyecto: " + ex.getMessage());
+
+            exceptionHandler.handleException(ex, this, "Error al cargar tipos de proyecto: " + ex.getMessage());
             saveButton.setEnabled(false);
         }
     }
@@ -260,7 +268,10 @@ public class CreateProjectScreen extends JFrame {
             }
 
             if (createProjectSvc.projectNameExists(projectName)) {
-                showError("Ya existe un proyecto con el nombre: " + projectName);
+                exceptionHandler.handleDuplicateProjectNameException(
+                        new DuplicateProjectNameException("Ya existe un proyecto con el nombre: " + projectName),
+                        this
+                );
                 projectNameField.requestFocus();
                 return;
             }
@@ -309,36 +320,44 @@ public class CreateProjectScreen extends JFrame {
             }
 
             if (!createProjectSvc.validateProjectDates(startDate, endDate)) {
-                showError("Las fechas no son válidas. Verifique que:\n" +
+                throw new InvalidProjectDatesException("Las fechas no son válidas. Verifique que:\n" +
                         "- La fecha de inicio no sea anterior a hoy\n" +
                         "- La fecha de fin sea posterior o igual a la fecha de inicio");
-                startDateField.requestFocus();
-                return;
             }
+
 
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             saveButton.setEnabled(false);
 
-            Project createdProject = createProjectSvc.createProject(
-                    projectName,
-                    description,
-                    startDate,
-                    endDate,
-                    selectedType,
-                    currentUser
-            );
+            Project projectToCreate = Project.builder()
+                    .projectName(projectName)
+                    .description(description)
+                    .startDate(startDate)
+                    .endDate(endDate)
+                    .projectType(selectedType)
+                    .createdBy(currentUser)
+                    .status(ProjectStatus.ACTIVE)
+                    .build();
+
+            Project createdProject = createProjectSvc.createProject(projectToCreate);
 
             if (createdProject != null) {
                 showSuccess("Proyecto '" + createdProject.getProjectName() + "' creado exitosamente!");
                 clearForm();
             } else {
-                showError("Error al crear el proyecto. Inténtelo nuevamente.");
+                exceptionHandler.handleProjectCreationException(
+                        new ProjectCreationException("Error al crear el proyecto. Inténtelo nuevamente."),
+                        this
+                );
             }
 
+        }  catch (InvalidProjectDatesException ex) {
+            exceptionHandler.handleInvalidProjectDatesException(ex, this);
+            startDateField.requestFocus();
         } catch (IllegalArgumentException ex) {
-            showError(ex.getMessage());
+            exceptionHandler.handleException(ex, this, ex.getMessage());
         } catch (Exception ex) {
-            showError("Error inesperado al crear el proyecto: " + ex.getMessage());
+            exceptionHandler.handleException(ex, this, "Error inesperado al crear el proyecto: " + ex.getMessage());
         } finally {
             setCursor(Cursor.getDefaultCursor());
             saveButton.setEnabled(true);
@@ -366,7 +385,7 @@ public class CreateProjectScreen extends JFrame {
                 homeScreen.setVisible(true);
                 this.dispose();
             } catch (Exception ex) {
-                showError("Error al navegar a Home: " + ex.getMessage());
+                exceptionHandler.handleException(ex, this, "Error al navegar a Home: " + ex.getMessage());
             }
         });
     }

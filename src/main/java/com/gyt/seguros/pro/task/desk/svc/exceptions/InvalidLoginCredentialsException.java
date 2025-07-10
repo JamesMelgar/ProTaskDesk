@@ -6,8 +6,5 @@ public class InvalidLoginCredentialsException  extends Exception {
         super(message);
     }
 
-    public InvalidLoginCredentialsException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
 

@@ -10,18 +10,13 @@ import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Optional;
 
 import javax.swing.WindowConstants;
 
 public class LoginScreen extends JFrame {
     private JPanel mainPanel;
-    private JPanel loginFormPanel;
-    private JLabel labelUser;
     private JTextField textFieldUser;
-    private JLabel labelPassword;
     private JPasswordField passwordField;
     private JButton buttonLogin;
     private JButton buttonRegister;
@@ -94,7 +89,7 @@ public class LoginScreen extends JFrame {
         panel.setBackground(AppConstants.LIGHT_BLUE_BACKGROUND);
         panel.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
 
-        loginFormPanel = createLoginForm();
+        JPanel loginFormPanel = createLoginForm();
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.BOTH;
@@ -130,7 +125,7 @@ public class LoginScreen extends JFrame {
         gbc.insets = new Insets(20, 15, 15, 15);
         panel.add(new JLabel(""), gbc);
 
-        labelUser = new JLabel("Usuario:");
+        JLabel labelUser = new JLabel("Usuario:");
         labelUser.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 14));
         labelUser.setForeground(AppConstants.TEXT_DARK_GRAY);
         gbc.gridx = 0; gbc.gridy = 2;
@@ -151,7 +146,7 @@ public class LoginScreen extends JFrame {
         gbc.insets = new Insets(0, 15, 15, 15);
         panel.add(textFieldUser, gbc);
 
-        labelPassword = new JLabel("Contraseña:");
+        JLabel labelPassword = new JLabel("Contraseña:");
         labelPassword.setFont(new Font(AppConstants.DEFAULT_FONT_NAME, Font.BOLD, 14));
         labelPassword.setForeground(AppConstants.TEXT_DARK_GRAY);
         gbc.gridy = 4;
@@ -236,24 +231,19 @@ public class LoginScreen extends JFrame {
     }
 
     private void setupEventHandlers() {
-        buttonLogin.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handleLogin();
-            }
-        });
+        buttonLogin.addActionListener(e -> handleLogin());
 
-        buttonRegister.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                try {
-                    RegisterScreen registerScreen = new RegisterScreen();
-                    registerScreen.setVisible(true);
-                } catch (Exception ex) {
-                    exceptionHandler.handleException(ex, LoginScreen.this,
-                            MESSAGE_ERROR_REGISTER_SCREEN + ex.getMessage());
-                }
-            });
-        });
+        buttonRegister.addActionListener(e ->
+                SwingUtilities.invokeLater(() -> {
+                    try {
+                        RegisterScreen registerScreen = new RegisterScreen();
+                        registerScreen.setVisible(true);
+                    } catch (Exception ex) {
+                        exceptionHandler.handleException(ex, LoginScreen.this,
+                                MESSAGE_ERROR_REGISTER_SCREEN + ex.getMessage());
+                    }
+                })
+        );
 
         getRootPane().setDefaultButton(buttonLogin);
     }
@@ -291,7 +281,6 @@ public class LoginScreen extends JFrame {
                 });
 
             } else {
-                // Crear y lanzar excepción personalizada para credenciales inválidas
                 InvalidLoginCredentialsException loginException =
                         new InvalidLoginCredentialsException(MESSAGE_LOGIN_INVALID_CREDENTIALS);
                 exceptionHandler.handleInvalidLoginCredentialsException(loginException, this);

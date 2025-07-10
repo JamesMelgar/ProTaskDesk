@@ -6,7 +6,4 @@ public class InvalidRegistrationDataException extends RuntimeException {
         super(message);
     }
 
-    public InvalidRegistrationDataException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

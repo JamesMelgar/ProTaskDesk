@@ -2,11 +2,7 @@ package com.gyt.seguros.pro.task.desk.dal.model;
 
 import com.gyt.seguros.pro.task.desk.dal.model.enums.ProjectStatus;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,6 +22,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"tasks", "projectMembers"})
 @ToString(exclude = {"tasks", "projectMembers"})
+@Builder
 public class Project {
 
     @Id

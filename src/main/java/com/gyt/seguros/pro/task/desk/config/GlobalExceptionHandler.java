@@ -97,6 +97,16 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    public void handleInvalidProjectDatesException(InvalidProjectDatesException ex, java.awt.Component parentComponent) {
+        logger.warn("Fechas de proyecto inválidas: {}", ex.getMessage());
+        SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
+                parentComponent,
+                ex.getMessage(),
+                TITLE_ERROR_PROJECT,
+                JOptionPane.WARNING_MESSAGE
+        ));
+    }
+
     public void handleInvalidLoginCredentialsException(InvalidLoginCredentialsException ex, java.awt.Component parentComponent) {
         logger.warn("Credenciales de login inválidas: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(

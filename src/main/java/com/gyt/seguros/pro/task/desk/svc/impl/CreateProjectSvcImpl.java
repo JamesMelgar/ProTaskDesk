@@ -7,13 +7,17 @@ import com.gyt.seguros.pro.task.desk.dal.model.ProjectType;
 import com.gyt.seguros.pro.task.desk.dal.model.User;
 import com.gyt.seguros.pro.task.desk.dal.model.enums.ProjectStatus;
 import com.gyt.seguros.pro.task.desk.svc.CreateProjectSvc;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateProjectNameException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidProjectDataException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidProjectDatesException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.ProjectCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @Transactional
@@ -34,15 +38,6 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
         return projectTypeRepository.findAllOrderByTypeName();
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public ProjectType getProjectTypeById(Integer projectTypeId) {
-        if (projectTypeId == null) {
-            return null;
-        }
-        Optional<ProjectType> projectType = projectTypeRepository.findById(projectTypeId);
-        return projectType.orElse(null);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -54,49 +49,58 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
     }
 
     @Override
-    public Project createProject(String projectName, String description,
-                                 LocalDate startDate, LocalDate endDate,
-                                 ProjectType projectType, User createdByUser) {
+    public Project createProject(Project projectToCreate) {
+        if (projectToCreate == null) {
+            throw new IllegalArgumentException("El objeto Project no puede ser nulo.");
+        }
+
+        String projectName = projectToCreate.getProjectName();
+        String description = projectToCreate.getDescription();
+        LocalDate startDate = projectToCreate.getStartDate();
+        LocalDate endDate = projectToCreate.getEndDate();
+        ProjectType projectType = projectToCreate.getProjectType();
+        User createdByUser = projectToCreate.getCreatedBy();
 
         if (!validateProjectData(projectName, description, startDate, endDate, projectType)) {
-            throw new IllegalArgumentException("Datos del proyecto inválidos");
+            throw new InvalidProjectDataException("Datos del proyecto inválidos. Por favor, revise la información.");
         }
 
         if (createdByUser == null) {
-            throw new IllegalArgumentException("El usuario creador es requerido");
+            throw new IllegalArgumentException("El usuario creador es requerido para la creación del proyecto.");
         }
 
         if (projectNameExists(projectName)) {
-            throw new IllegalArgumentException("Ya existe un proyecto con el nombre: " + projectName);
+            throw new DuplicateProjectNameException("Ya existe un proyecto con el nombre: '" + projectName + "'");
         }
 
-        Project project = new Project();
-        project.setProjectName(projectName.trim());
-        project.setDescription(description != null ? description.trim() : null);
-        project.setStartDate(startDate);
-        project.setEndDate(endDate);
-        project.setStatus(ProjectStatus.ACTIVE);
-        project.setProjectType(projectType);
-        project.setCreatedBy(createdByUser);
+        if (projectToCreate.getStatus() == null) {
+            projectToCreate.setStatus(ProjectStatus.ACTIVE);
+        }
 
-        Project savedProject = projectRepository.save(project);
-
-        taskCreationService.createDefaultTasksForProject(savedProject, createdByUser);
-
-        return savedProject;
+        try {
+            Project savedProject = projectRepository.save(projectToCreate);
+            taskCreationService.createDefaultTasksForProject(savedProject, createdByUser);
+            return savedProject;
+        } catch (Exception e) {
+            throw new ProjectCreationException("Error interno al persistir el proyecto: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public boolean validateProjectDates(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
-            return false;
+            throw new InvalidProjectDatesException("Las fechas de inicio y fin son obligatorias.");
         }
 
         if (startDate.isBefore(LocalDate.now())) {
-            return false;
+            throw new InvalidProjectDatesException("La fecha de inicio no puede ser anterior a la fecha actual.");
         }
 
-        return !endDate.isBefore(startDate);
+        if (endDate.isBefore(startDate)) {
+            throw new InvalidProjectDatesException("La fecha de fin no puede ser anterior a la fecha de inicio.");
+        }
+
+        return true;
     }
 
     @Override
@@ -105,21 +109,23 @@ public class CreateProjectSvcImpl implements CreateProjectSvc {
                                        ProjectType projectType) {
 
         if (projectName == null || projectName.trim().isEmpty()) {
-            return false;
+            throw new InvalidProjectDataException("El nombre del proyecto es obligatorio.");
         }
 
         if (projectName.trim().length() > 255) {
-            return false;
+            throw new InvalidProjectDataException("El nombre del proyecto no puede exceder los 255 caracteres.");
         }
 
         if (description != null && description.trim().length() > 1000) {
-            return false;
+            throw new InvalidProjectDataException("La descripción del proyecto no puede exceder los 1000 caracteres.");
         }
 
-        if (!validateProjectDates(startDate, endDate)) {
-            return false;
+        validateProjectDates(startDate, endDate);
+
+        if (projectType == null) {
+            throw new InvalidProjectDataException("El tipo de proyecto es obligatorio.");
         }
 
-        return projectType != null;
+        return true;
     }
 }
