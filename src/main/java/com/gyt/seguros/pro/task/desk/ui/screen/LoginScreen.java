@@ -3,9 +3,9 @@ package com.gyt.seguros.pro.task.desk.ui.screen;
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
 import com.gyt.seguros.pro.task.desk.config.GlobalExceptionHandler;
 import com.gyt.seguros.pro.task.desk.svc.dto.UserLoginRequest;
-import com.gyt.seguros.pro.task.desk.dal.model.User;
-import com.gyt.seguros.pro.task.desk.svc.LoginSvc;
-import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidLoginCredentialsException;
+import com.gyt.seguros.pro.task.desk.svc.login.LoginSvc;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions.InvalidLoginCredentialsException;
+import com.gyt.seguros.pro.task.desk.svc.user.User;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;
@@ -290,4 +290,5 @@ public class LoginScreen extends JFrame {
             exceptionHandler.handleException(ex, this, AppConstants.MESSAGE_ERROR_UNEXPECTED);
         }
     }
+
 }

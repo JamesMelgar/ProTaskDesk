@@ -1,6 +1,6 @@
 package com.gyt.seguros.pro.task.desk.ui.screen;
 
-import com.gyt.seguros.pro.task.desk.dal.model.User;
+import com.gyt.seguros.pro.task.desk.svc.user.User;
 import com.gyt.seguros.pro.task.desk.ui.components.AppMenuBar;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 

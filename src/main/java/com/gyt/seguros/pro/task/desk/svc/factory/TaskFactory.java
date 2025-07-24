@@ -1,8 +1,8 @@
 package com.gyt.seguros.pro.task.desk.svc.factory;
 
-import com.gyt.seguros.pro.task.desk.dal.model.Project;
-import com.gyt.seguros.pro.task.desk.dal.model.Task;
-import com.gyt.seguros.pro.task.desk.dal.model.User;
+import com.gyt.seguros.pro.task.desk.svc.project.Project;
+import com.gyt.seguros.pro.task.desk.svc.task.Task;
+import com.gyt.seguros.pro.task.desk.svc.user.User;
 
 import java.util.List;
 

@@ -2,12 +2,12 @@ package com.gyt.seguros.pro.task.desk.ui.screen;
 
 import com.gyt.seguros.pro.task.desk.ProTaskDesk;
 import com.gyt.seguros.pro.task.desk.config.GlobalExceptionHandler;
-import com.gyt.seguros.pro.task.desk.svc.RegisterSvc;
+import com.gyt.seguros.pro.task.desk.svc.register.RegisterSvc;
 import com.gyt.seguros.pro.task.desk.svc.dto.UserRegistrationRequest;
-import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateEmailException;
-import com.gyt.seguros.pro.task.desk.svc.exceptions.DuplicateUsernameException;
-import com.gyt.seguros.pro.task.desk.svc.exceptions.InvalidRegistrationDataException;
-import com.gyt.seguros.pro.task.desk.svc.exceptions.UserRegistrationException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions.DuplicateEmailException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions.DuplicateUsernameException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions.InvalidRegistrationDataException;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions.UserRegistrationException;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 
 import javax.swing.*;

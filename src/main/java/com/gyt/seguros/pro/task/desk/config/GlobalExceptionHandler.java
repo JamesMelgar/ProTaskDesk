@@ -1,6 +1,6 @@
 package com.gyt.seguros.pro.task.desk.config;
 
-import com.gyt.seguros.pro.task.desk.svc.exceptions.*;
+import com.gyt.seguros.pro.task.desk.svc.exceptions.Exceptions;
 import com.gyt.seguros.pro.task.desk.util.AppConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 @Component
-public class GlobalExceptionHandler {
+public final class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private static final String TITLE_ERROR_REGISTRE = "Error de Registro";
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleDuplicateUsernameException(DuplicateUsernameException ex, java.awt.Component parentComponent) {
+    public void handleDuplicateUsernameException(Exceptions.DuplicateUsernameException ex, java.awt.Component parentComponent) {
         logger.warn("Intento de registro con usuario duplicado: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleDuplicateEmailException(DuplicateEmailException ex, java.awt.Component parentComponent) {
+    public void handleDuplicateEmailException(Exceptions.DuplicateEmailException ex, java.awt.Component parentComponent) {
         logger.warn("Intento de registro con email duplicado: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -47,7 +47,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleUserRegistrationException(UserRegistrationException ex, java.awt.Component parentComponent) {
+    public void handleUserRegistrationException(Exceptions.UserRegistrationException ex, java.awt.Component parentComponent) {
         logger.error("Error de lógica de negocio al registrar usuario: {}", ex.getMessage(), ex);
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleInvalidRegistrationDataException(InvalidRegistrationDataException ex, java.awt.Component parentComponent) {
+    public void handleInvalidRegistrationDataException(Exceptions.InvalidRegistrationDataException ex, java.awt.Component parentComponent) {
         logger.warn("Datos de registro inválidos: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleProjectCreationException(ProjectCreationException ex, java.awt.Component parentComponent) {
+    public void handleProjectCreationException(Exceptions.ProjectCreationException ex, java.awt.Component parentComponent) {
         logger.error("Error al crear proyecto: {}", ex.getMessage(), ex);
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleDuplicateProjectNameException(DuplicateProjectNameException ex, java.awt.Component parentComponent) {
+    public void handleDuplicateProjectNameException(Exceptions.DuplicateProjectNameException ex, java.awt.Component parentComponent) {
         logger.warn("Intento de crear proyecto con nombre duplicado: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleInvalidProjectDataException(InvalidProjectDataException ex, java.awt.Component parentComponent) {
+    public void handleInvalidProjectDataException(Exceptions.InvalidProjectDataException ex, java.awt.Component parentComponent) {
         logger.warn("Datos de proyecto inválidos: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleInvalidProjectDatesException(InvalidProjectDatesException ex, java.awt.Component parentComponent) {
+    public void handleInvalidProjectDatesException(Exceptions.InvalidProjectDatesException ex, java.awt.Component parentComponent) {
         logger.warn("Fechas de proyecto inválidas: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,
@@ -107,7 +107,7 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    public void handleInvalidLoginCredentialsException(InvalidLoginCredentialsException ex, java.awt.Component parentComponent) {
+    public void handleInvalidLoginCredentialsException(Exceptions.InvalidLoginCredentialsException ex, java.awt.Component parentComponent) {
         logger.warn("Credenciales de login inválidas: {}", ex.getMessage());
         SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(
                 parentComponent,

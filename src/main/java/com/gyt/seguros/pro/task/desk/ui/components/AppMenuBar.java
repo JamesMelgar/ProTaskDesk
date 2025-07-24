@@ -1,6 +1,6 @@
 package com.gyt.seguros.pro.task.desk.ui.components;
 
-import com.gyt.seguros.pro.task.desk.dal.model.User;
+import com.gyt.seguros.pro.task.desk.svc.user.User;
 import com.gyt.seguros.pro.task.desk.ui.screen.LoginScreen;
 import com.gyt.seguros.pro.task.desk.ui.screen.HomeScreen;
 import com.gyt.seguros.pro.task.desk.ui.screen.CreateProjectScreen;
